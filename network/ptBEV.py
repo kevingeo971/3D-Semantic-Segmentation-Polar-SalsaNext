@@ -65,7 +65,7 @@ class ptBEVnet(nn.Module):
         
     def forward(self, pt_fea, xy_ind):
         cur_dev = pt_fea[0].get_device()
-        
+        cur_dev = 'cpu'
         # concate everything
         cat_pt_ind = []
         for i_batch in range(len(xy_ind)):
@@ -136,8 +136,10 @@ class ptBEVnet(nn.Module):
             out_data = self.local_pool_op(out_data)
         
         # run through network
+        # print( "\n\out_data : ", out_data.shape, "\n\n")
         net_return_data = self.BEV_model(out_data)
         
+        # print( "\n\nnet_return_data : ", net_return_data.shape, "\n\n")
         return net_return_data
     
 def grp_range_torch(a,dev):
