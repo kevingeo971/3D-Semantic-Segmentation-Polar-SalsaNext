@@ -120,25 +120,25 @@ def main(args):
         my_model.train()
         outputs = my_model(train_pt_fea_ten,train_grid_ten)
         print("op : ", outputs.shape)
-        print("point_label_tensor:",point_label_tensor.shape)
+        # print("point_label_tensor:",point_label_tensor.shape)
 
         ## Test ##
-
-        
         # x = sn_model(outputs)
         # x = x.permute(0,2,3,1)
-
         # new_shape = list(x.size())[:3] + [32,19]
-
         # x = x.view(new_shape)
-
         # x = x.permute(0,4,1,2,3)
-
         # print(x.shape)
 
         ##########
 
-        break
+        loss = lovasz_softmax(torch.nn.functional.softmax(outputs), point_label_tensor,ignore=255) + loss_fun(outputs,point_label_tensor)
+        loss.backward()
+        optimizer.step()
+        loss_list.append(loss.item())
+        optimizer.zero_grad()
+        print(loss)
+        epoch+=1
 
 if __name__ == '__main__':
     # Training settings

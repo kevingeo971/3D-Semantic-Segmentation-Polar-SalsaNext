@@ -218,12 +218,11 @@ class SalsaNext(nn.Module):
         x = F.softmax(x, dim=1)
         ### Keep or remove softmax
 
+        ## Extra needed from PolarNet
         x = x.permute(0,2,3,1)
-
         new_shape = list(x.size())[:3] + [32,19]
-
         x = x.view(new_shape)
-
         x = x.permute(0,4,1,2,3)
+        #################
 
         return x
