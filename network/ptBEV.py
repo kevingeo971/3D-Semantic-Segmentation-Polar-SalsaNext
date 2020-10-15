@@ -65,7 +65,7 @@ class ptBEVnet(nn.Module):
         
     def forward(self, pt_fea, xy_ind):
         cur_dev = pt_fea[0].get_device()
-        cur_dev = 'cpu'
+        # cur_dev = 'cpu'
         # concate everything
         cat_pt_ind = []
         for i_batch in range(len(xy_ind)):

@@ -14,7 +14,9 @@ from network.ptBEV import ptBEVnet
 from dataloader.dataset import collate_fn_BEV,SemKITTI,SemKITTI_label_name,spherical_dataset,voxel_dataset
 from network.lovasz_losses import lovasz_softmax
 from SalsaNext import SalsaNext
-
+# torch.backends.cudnn.benchmark = True
+# torch.backends.cudnn.deterministic = True
+# torch.backends.cudnn.enabled = False
 # print("imported")
 # exit()
 
@@ -54,8 +56,8 @@ def main(args):
     model_save_path = args.model_save_path
     compression_model = args.grid_size[2]
     grid_size = args.grid_size
-    # pytorch_device = torch.device('cuda:0')
-    pytorch_device = torch.device('cpu')
+    pytorch_device = torch.device('cuda:0')
+    # pytorch_device = torch.device('cpu')
     model = args.model
     if model == 'polar':
         fea_dim = 9
@@ -108,6 +110,7 @@ def main(args):
     global_iter = 0
     exce_counter = 0
 
+    e=0
     for _,train_vox_label,train_grid,_,train_pt_fea in tqdm(train_dataset_loader):
 
         train_vox_label = SemKITTI2train(train_vox_label)
@@ -117,9 +120,10 @@ def main(args):
         point_label_tensor=train_vox_label.type(torch.LongTensor).to(pytorch_device)
 
         # BEV Projections after PointNet
-        my_model.train()
         outputs = my_model(train_pt_fea_ten,train_grid_ten)
-        print("op : ", outputs.shape)
+        # print(outputs.shape)
+        # continue
+        # print("op : ", outputs.shape)
         # print("point_label_tensor:",point_label_tensor.shape)
 
         ## Test ##
@@ -131,21 +135,22 @@ def main(args):
         # print(x.shape)
 
         ##########
-
+        optimizer.zero_grad()
         loss = lovasz_softmax(torch.nn.functional.softmax(outputs), point_label_tensor,ignore=255) + loss_fun(outputs,point_label_tensor)
         loss.backward()
         optimizer.step()
-        loss_list.append(loss.item())
+        # loss_list.append(loss.item())
         optimizer.zero_grad()
-        print(loss)
+        print(epoch," : ",loss)
         epoch+=1
+        
 
 if __name__ == '__main__':
     # Training settings
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('-d', '--data_dir', default='../dataset')
     parser.add_argument('-p', '--model_save_path', default='./SemKITTI_PolarSeg.pt')
-    parser.add_argument('-m', '--model', choices=['polar','traditional'], default='polar', help='training model: polar or traditional (default: polar)')
+    parser.add_argument('-m', '--model', choices=['polar','traditional'], default='traditional', help='training model: polar or traditional (default: traditional)')
     parser.add_argument('-s', '--grid_size', nargs='+', type=int, default = [480,360,32], help='grid size of BEV representation (default: [480,360,32])')
     parser.add_argument('--train_batch_size', type=int, default=2, help='batch size for training (default: 2)')
     parser.add_argument('--val_batch_size', type=int, default=2, help='batch size for validation (default: 2)')

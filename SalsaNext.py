@@ -212,10 +212,10 @@ class SalsaNext(nn.Module):
         up1e = self.upBlock4(up2e, down0b)
         x = self.logits(up1e)
 
-        x = x
+        # x = x
         
         ### Keep or remove softmax
-        x = F.softmax(x, dim=1)
+        # x = F.softmax(x, dim=1)
         ### Keep or remove softmax
 
         ## Extra needed from PolarNet
