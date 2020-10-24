@@ -14,12 +14,24 @@ from network.ptBEV import ptBEVnet
 from dataloader.dataset import collate_fn_BEV,SemKITTI,SemKITTI_label_name,spherical_dataset,voxel_dataset
 from network.lovasz_losses import lovasz_softmax
 from SalsaNext import SalsaNext
+import logging  
 # torch.backends.cudnn.benchmark = True
 # torch.backends.cudnn.deterministic = True
 # torch.backends.cudnn.enabled = False
-# print("imported")
+# logger.info("imported")
 # exit()
-
+logging.basicConfig(level=logging.DEBUG,
+                    format='%(asctime)s %(message)s', 
+                    handlers=[
+                        logging.FileHandler("exp1_new.log"),
+                        logging.StreamHandler()
+                    ]) 
+  
+#Creating an object 
+logger=logging.getLogger() 
+  
+#Setting the threshold of logger to DEBUG 
+# logger.setLevel(logging.DEBUG) 
 #ignore weird np warning
 import warnings
 warnings.filterwarnings("ignore")
@@ -75,8 +87,8 @@ def main(args):
     sn_model = SalsaNext(19*32)
     my_model = ptBEVnet(sn_model, pt_model = 'pointnet', grid_size =  grid_size, fea_dim = fea_dim, max_pt_per_encode = 256,
                             out_pt_fea_dim = 512, kernal_size = 1, pt_selection = 'random', fea_compre = compression_model)
-    if os.path.exists(model_save_path):
-        my_model.load_state_dict(torch.load(model_save_path))
+    # if os.path.exists(model_save_path):
+    #     my_model.load_state_dict(torch.load(model_save_path))
     my_model.to(pytorch_device)
 
     optimizer = optim.Adam(my_model.parameters())
@@ -111,19 +123,21 @@ def main(args):
     exce_counter = 0
 
     while True:
+        logger.debug("\n\n #### Epoch : " + str(epoch+1) + "\n\n")
         loss_list=[]
         pbar = tqdm(total=len(train_dataset_loader))
         for i_iter,(_,train_vox_label,train_grid,_,train_pt_fea) in enumerate(train_dataset_loader):
-            # print(i_iter)
+            # logger.debug(i_iter)
             # validation
             if global_iter % check_iter == 0:
-                print("Validating")
+                logger.debug("Validating")
                 my_model.eval()
                 hist_list = []
                 val_loss_list = []
                 with torch.no_grad():
                     for i_iter_val,(_,val_vox_label,val_grid,val_pt_labs,val_pt_fea) in enumerate(val_dataset_loader):
-                        # print(i_iter_val)
+                        # pbar.update(1)
+                        # logger.debug(i_iter_val)
                         val_vox_label = SemKITTI2train(val_vox_label)
                         val_pt_labs = SemKITTI2train(val_pt_labs)
                         val_pt_fea_ten = [torch.from_numpy(i).type(torch.FloatTensor).to(pytorch_device) for i in val_pt_fea]
@@ -131,19 +145,20 @@ def main(args):
                         val_label_tensor=val_vox_label.type(torch.LongTensor).to(pytorch_device)
 
                         predict_labels = my_model(val_pt_fea_ten, val_grid_ten)
-                        # print(predict_labels)
+                        # logger.debug(predict_labels)
                         loss = lovasz_softmax(torch.nn.functional.softmax(predict_labels).detach(), val_label_tensor,ignore=255) + loss_fun(predict_labels.detach(),val_label_tensor)
                         predict_labels = torch.argmax(predict_labels,dim=1)
                         predict_labels = predict_labels.cpu().detach().numpy()
                         for count,i_val_grid in enumerate(val_grid):
                             hist_list.append(fast_hist_crop(predict_labels[count,val_grid[count][:,0],val_grid[count][:,1],val_grid[count][:,2]],val_pt_labs[count],unique_label))
                         val_loss_list.append(loss.detach().cpu().numpy())
+                        
                 my_model.train()
                 iou = per_class_iu(sum(hist_list))
-                # print(iou)
-                print('Validation per class iou: ')
+                # logger.debug(iou)
+                logger.debug('\n\nValidation per class iou: ')
                 for class_name, class_iou in zip(unique_label_str,iou):
-                    print('%s : %.2f%%' % (class_name, class_iou*100))
+                    logger.debug('%s : %.2f%%' % (class_name, class_iou*100))
                 val_miou = np.nanmean(iou) * 100
                 del val_vox_label,val_grid,val_pt_fea,val_grid_ten
                 
@@ -152,14 +167,14 @@ def main(args):
                     best_val_miou=val_miou
                     torch.save(my_model.state_dict(), model_save_path)
 
-                print('Current val miou is %.3f while the best val miou is %.3f' %
+                logger.debug('Current val miou is %.3f while the best val miou is %.3f' %
                     (val_miou,best_val_miou))
-                print('Current val loss is %.3f' %
+                logger.debug('Current val loss is %.3f' %
                     (np.mean(val_loss_list)))
                 if start_training:
-                    print('epoch %d iter %5d, loss: %.3f\n' %
+                    logger.debug('epoch %d iter %5d, loss: %.3f\n' %
                         (epoch, i_iter, np.mean(loss_list)))
-                print('%d exceptions encountered during last training\n' %
+                logger.debug('%d exceptions encountered during last training\n' %
                     exce_counter)
                 exce_counter = 0
                 loss_list = []
@@ -173,7 +188,7 @@ def main(args):
             # forward + backward + optimize
             outputs = my_model(train_pt_fea_ten,train_grid_ten)
             loss = lovasz_softmax(torch.nn.functional.softmax(outputs), point_label_tensor,ignore=255) + loss_fun(outputs,point_label_tensor)
-            # print("loss : ",loss)
+            # logger.debug("loss : ",loss)
             loss.backward()
             optimizer.step()
             loss_list.append(loss.item())
@@ -191,18 +206,18 @@ def main(args):
 if __name__ == '__main__':
     # Training settings
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument('-d', '--data_dir', default='data')
+    parser.add_argument('-d', '--data_dir', default='../dataset')
     parser.add_argument('-p', '--model_save_path', default='./SemKITTI_PolarSeg.pt')
     parser.add_argument('-m', '--model', choices=['polar','traditional'], default='traditional', help='training model: polar or traditional (default: traditional)')
     parser.add_argument('-s', '--grid_size', nargs='+', type=int, default = [480,360,32], help='grid size of BEV representation (default: [480,360,32])')
     parser.add_argument('--train_batch_size', type=int, default=2, help='batch size for training (default: 2)')
-    parser.add_argument('--val_batch_size', type=int, default=2, help='batch size for validation (default: 2)')
+    parser.add_argument('--val_batch_size', type=int, default=4, help='batch size for validation (default: 2)')
     parser.add_argument('--check_iter', type=int, default=4000, help='validation interval (default: 4000)')
     
     args = parser.parse_args()
     if not len(args.grid_size) == 3:
         raise Exception('Invalid grid size! Grid size should have 3 dimensions.')
 
-    print(' '.join(sys.argv))
-    print(args)
+    logger.debug(' '.join(sys.argv))
+    logger.debug(args)
     main(args)

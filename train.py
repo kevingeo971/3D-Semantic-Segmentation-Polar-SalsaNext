@@ -14,6 +14,7 @@ from network.ptBEV import ptBEVnet
 from dataloader.dataset import collate_fn_BEV,SemKITTI,SemKITTI_label_name,spherical_dataset,voxel_dataset
 from network.lovasz_losses import lovasz_softmax
 from SalsaNext import SalsaNext
+from SalsaNext_Circular import SalsaNext_Circular
 # torch.backends.cudnn.benchmark = True
 # torch.backends.cudnn.deterministic = True
 # torch.backends.cudnn.enabled = False
@@ -59,6 +60,7 @@ def main(args):
     pytorch_device = torch.device('cuda:0')
     # pytorch_device = torch.device('cpu')
     model = args.model
+    print("\n\n Model : ", model, "\n\n")
     if model == 'polar':
         fea_dim = 9
         circular_padding = True
@@ -72,7 +74,10 @@ def main(args):
 
     #prepare model
     # my_BEV_model=BEV_Unet(n_class=len(unique_label), n_height = compression_model, input_batch_norm = True, dropout = 0.5, circular_padding = circular_padding)
-    sn_model = SalsaNext(19*32)
+    if model == 'traditional':
+        sn_model = SalsaNext(19*32)
+    elif model == 'polar':
+        sn_model = SalsaNext_Circular(19*32)
     my_model = ptBEVnet(sn_model, pt_model = 'pointnet', grid_size =  grid_size, fea_dim = fea_dim, max_pt_per_encode = 256,
                             out_pt_fea_dim = 512, kernal_size = 1, pt_selection = 'random', fea_compre = compression_model)
     if os.path.exists(model_save_path):
@@ -149,7 +154,7 @@ if __name__ == '__main__':
     # Training settings
     parser = argparse.ArgumentParser(description='')
     parser.add_argument('-d', '--data_dir', default='../dataset')
-    parser.add_argument('-p', '--model_save_path', default='./SemKITTI_PolarSeg.pt')
+    parser.add_argument('-p', '--model_save_path', default='./Kevin_Exp1.pt')
     parser.add_argument('-m', '--model', choices=['polar','traditional'], default='traditional', help='training model: polar or traditional (default: traditional)')
     parser.add_argument('-s', '--grid_size', nargs='+', type=int, default = [480,360,32], help='grid size of BEV representation (default: [480,360,32])')
     parser.add_argument('--train_batch_size', type=int, default=2, help='batch size for training (default: 2)')

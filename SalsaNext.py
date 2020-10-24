@@ -175,6 +175,7 @@ class UpBlock(nn.Module):
 
 class SalsaNext(nn.Module):
     def __init__(self, nclasses):
+        print("\n\nSalsaNext : Traditional")
         super(SalsaNext, self).__init__()
         self.nclasses = nclasses
 

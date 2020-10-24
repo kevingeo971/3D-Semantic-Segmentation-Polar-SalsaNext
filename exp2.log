@@ -1,0 +1,72 @@
+2020-10-24 20:43:15,579 train_exp2_polar.py --model polar
+2020-10-24 20:43:15,579 Namespace(check_iter=4000, data_dir='../dataset', grid_size=[480, 360, 32], model='polar', model_save_path='./SemKITTI_PolarSeg.pt', train_batch_size=2, val_batch_size=4)
+2020-10-24 20:43:15,579  
+
+Model : polar
+
+
+2020-10-24 20:43:37,458 train_exp2_polar.py --model polar
+2020-10-24 20:43:37,458 Namespace(check_iter=4000, data_dir='../dataset', grid_size=[480, 360, 32], model='polar', model_save_path='./SemKITTI_PolarSeg.pt', train_batch_size=2, val_batch_size=4)
+2020-10-24 20:43:37,458  
+
+Model : polar
+
+
+2020-10-24 20:44:33,779 train_exp2_polar.py --model polar
+2020-10-24 20:44:33,779 Namespace(check_iter=4000, data_dir='../dataset', grid_size=[480, 360, 32], model='polar', model_save_path='./SemKITTI_PolarSeg.pt', train_batch_size=2, val_batch_size=4)
+2020-10-24 20:44:33,779  
+
+Model : polar
+
+
+2020-10-24 20:44:37,764 
+
+ #### Epoch : 1
+
+
+2020-10-24 20:44:39,800 Validating
+2020-10-24 20:45:40,016 train_exp2_polar.py --model polar
+2020-10-24 20:45:40,016 Namespace(check_iter=4000, data_dir='../dataset', grid_size=[480, 360, 32], model='polar', model_save_path='./SemKITTI_PolarSeg.pt', train_batch_size=2, val_batch_size=4)
+2020-10-24 20:45:40,016  
+
+Model : polar
+
+
+2020-10-24 20:46:16,751 train_exp2_polar.py --model polar
+2020-10-24 20:46:16,751 Namespace(check_iter=4000, data_dir='../dataset', grid_size=[480, 360, 32], model='polar', model_save_path='./SemKITTI_PolarSeg.pt', train_batch_size=2, val_batch_size=4)
+2020-10-24 20:46:16,751  
+
+Model : polar
+
+
+2020-10-24 20:46:20,734 
+
+ #### Epoch : 1
+
+
+2020-10-24 20:47:37,230 train_exp2_polar.py --model polar
+2020-10-24 20:47:37,231 Namespace(check_iter=4000, data_dir='../dataset', grid_size=[480, 360, 32], model='polar', model_save_path='./SemKITTI_PolarSeg.pt', train_batch_size=2, val_batch_size=4)
+2020-10-24 20:47:37,231  
+
+Model : polar
+
+
+2020-10-24 20:47:41,228 
+
+ #### Epoch : 1
+
+
+2020-10-24 20:47:43,109 Validating
+2020-10-24 20:48:25,440 train_exp2_polar.py --model polar
+2020-10-24 20:48:25,441 Namespace(check_iter=4000, data_dir='../dataset', grid_size=[480, 360, 32], model='polar', model_save_path='./SemKITTI_PolarSeg.pt', train_batch_size=2, val_batch_size=4)
+2020-10-24 20:48:25,441  
+
+Model : polar
+
+
+2020-10-24 20:48:29,453 
+
+ #### Epoch : 1
+
+
+2020-10-24 20:48:31,425 Validating
