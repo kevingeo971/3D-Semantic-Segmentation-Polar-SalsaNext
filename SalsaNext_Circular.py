@@ -8,7 +8,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class ResContextBlock_Circular(nn.Module):
+
     def __init__(self, in_filters, out_filters):
+        print("ResContextBlock_Circular")
         super(ResContextBlock_Circular, self).__init__()
         self.conv1 = nn.Conv2d(in_filters, out_filters, kernel_size=(1, 1), stride=1)
         self.act1 = nn.LeakyReLU()
@@ -49,6 +51,7 @@ class ResContextBlock_Circular(nn.Module):
 class ResBlock_Circular(nn.Module):
     def __init__(self, in_filters, out_filters, dropout_rate, kernel_size=(3, 3), stride=1,
                  pooling=True, drop_out=True):
+        print("ResBlock_Circular")
         super(ResBlock_Circular, self).__init__()
         self.pooling = pooling
         self.drop_out = drop_out
@@ -131,6 +134,7 @@ class ResBlock_Circular(nn.Module):
 
 class UpBlock_Circular(nn.Module):
     def __init__(self, in_filters, out_filters, dropout_rate, drop_out=True):
+        print("UpBlock_Circular")
         super(UpBlock_Circular, self).__init__()
         self.drop_out = drop_out
         self.in_filters = in_filters
