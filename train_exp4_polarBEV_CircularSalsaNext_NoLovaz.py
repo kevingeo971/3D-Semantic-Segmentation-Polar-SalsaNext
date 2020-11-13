@@ -196,7 +196,8 @@ def main(args):
     
             # forward + backward + optimize
             outputs = my_model(train_pt_fea_ten,train_grid_ten)
-            loss = lovasz_softmax(torch.nn.functional.softmax(outputs), point_label_tensor,ignore=255) + loss_fun(outputs,point_label_tensor)
+            # print("No loss")
+            loss = loss_fun(outputs,point_label_tensor)
             # logger.debug("loss : ",loss)
             loss.backward()
             optimizer.step()
