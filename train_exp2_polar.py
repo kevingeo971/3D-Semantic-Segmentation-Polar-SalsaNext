@@ -12,7 +12,7 @@ from tqdm import tqdm
 from network.BEV_Unet import BEV_Unet
 from network.ptBEV import ptBEVnet
 from dataloader.dataset import collate_fn_BEV,SemKITTI,SemKITTI_label_name,spherical_dataset,voxel_dataset
-from network.lovasz_losses import lovasz_softmax
+from network.lovasz_losses import lovasz_softmax, focal_loss
 from SalsaNext import SalsaNext
 from SalsaNext_Circular import SalsaNext_Circular
 import logging  
@@ -128,7 +128,7 @@ def main(args):
     global_iter = 0
     exce_counter = 0
 
-    while True:
+    while epoch<=4:
         logger.debug("\n\n #### Epoch : " + str(epoch+1) + "\n\n")
         loss_list=[]
         pbar = tqdm(total=len(train_dataset_loader))
@@ -153,7 +153,11 @@ def main(args):
 
                         predict_labels = my_model(val_pt_fea_ten, val_grid_ten)
                         # logger.debug(predict_labels)
-                        loss = lovasz_softmax(torch.nn.functional.softmax(predict_labels).detach(), val_label_tensor,ignore=255) + loss_fun(predict_labels.detach(),val_label_tensor)
+                        l1 = focal_loss(torch.nn.functional.softmax(predict_labels).detach(), val_label_tensor,ignore=255)
+                        l2 = loss_fun(predict_labels.detach(),val_label_tensor)
+                        # print("l1,l2 ",l1,l2)
+                        loss = l1 + l2
+                        # print("**Total :",loss)
                         predict_labels = torch.argmax(predict_labels,dim=1)
                         predict_labels = predict_labels.cpu().detach().numpy()
                         for count,i_val_grid in enumerate(val_grid):
@@ -194,7 +198,8 @@ def main(args):
     
             # forward + backward + optimize
             outputs = my_model(train_pt_fea_ten,train_grid_ten)
-            loss = lovasz_softmax(torch.nn.functional.softmax(outputs), point_label_tensor,ignore=255) + loss_fun(outputs,point_label_tensor)
+            # loss = lovasz_softmax(torch.nn.functional.softmax(outputs), point_label_tensor,ignore=255) + loss_fun(outputs,point_label_tensor)
+            loss = focal_loss(torch.nn.functional.softmax(outputs), point_label_tensor,ignore=255) + loss_fun(outputs,point_label_tensor)
             # logger.debug("loss : ",loss)
             loss.backward()
             optimizer.step()
@@ -213,13 +218,13 @@ def main(args):
 if __name__ == '__main__':
     # Training settings
     parser = argparse.ArgumentParser(description='')
-    parser.add_argument('-d', '--data_dir', default='../dataset')
-    parser.add_argument('-p', '--model_save_path', default='./SemKITTI_PolarSeg.pt')
+    parser.add_argument('-d', '--data_dir', default='./data')
+    parser.add_argument('-p', '--model_save_path', default='./SemKITTI_PolarSeg_focal_loss.pt')
     parser.add_argument('-m', '--model', choices=['polar','traditional'], default='polar', help='training model: polar or traditional (default: polar)')
     parser.add_argument('-s', '--grid_size', nargs='+', type=int, default = [480,360,32], help='grid size of BEV representation (default: [480,360,32])')
     parser.add_argument('--train_batch_size', type=int, default=2, help='batch size for training (default: 2)')
     parser.add_argument('--val_batch_size', type=int, default=4, help='batch size for validation (default: 2)')
-    parser.add_argument('--check_iter', type=int, default=4000, help='validation interval (default: 4000)')
+    parser.add_argument('--check_iter', type=int, default=1000, help='validation interval (default: 4000)')
     
     args = parser.parse_args()
     if not len(args.grid_size) == 3:

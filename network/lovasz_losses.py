@@ -174,6 +174,9 @@ def lovasz_softmax_flat(probas, labels, classes='present'):
       labels: [P] Tensor, ground truth labels (between 0 and C - 1)
       classes: 'all' for all, 'present' for classes present in labels, or a list of classes to average.
     """
+
+    # print("shape", probas.shape, labels.shape)
+
     if probas.numel() == 0:
         # only void pixels, the gradients should be 0
         return probas * 0.
@@ -190,12 +193,87 @@ def lovasz_softmax_flat(probas, labels, classes='present'):
             class_pred = probas[:, 0]
         else:
             class_pred = probas[:, c]
+
+        # print("shape", class_pred.shape, fg.shape)
+
         errors = (Variable(fg) - class_pred).abs()
         errors_sorted, perm = torch.sort(errors, 0, descending=True)
         perm = perm.data
         fg_sorted = fg[perm]
         losses.append(torch.dot(errors_sorted, Variable(lovasz_grad(fg_sorted))))
+
     return mean(losses)
+
+
+def focal_loss(probas, labels, classes='present', alpha=0.25, gamma=2, grad_scale=None, ignore=None, weights=None):
+    """
+    Multi-class Lovasz-Softmax loss
+      probas: [B, C, H, W] Variable, class probabilities at each prediction (between 0 and 1).
+              Interpreted as binary (sigmoid) output with outputs of size [B, H, W].
+      labels: [B, H, W] Tensor, ground truth labels (between 0 and C - 1)
+      classes: 'all' for all, 'present' for classes present in labels, or a list of classes to average.
+      per_image: compute the loss per image instead of per batch
+      ignore: void class labels
+    """
+  
+    # loss = lovasz_softmax_flat(*flatten_probas(prob, labels, ignore), classes=classes)
+
+    probas,labels = flatten_probas(probas, labels, ignore)
+
+
+    if probas.numel() == 0:
+        # only void pixels, the gradients should be 0
+        return probas * 0.
+    C = probas.size(1)
+    losses = []
+    class_to_sum = list(range(C)) if classes in ['all', 'present'] else classes
+    for c in class_to_sum:
+        fg = (labels == c).float() # foreground for class c
+        if (classes is 'present' and fg.sum() == 0):
+            continue
+        if C == 1:
+            if len(classes) > 1:
+                raise ValueError('Sigmoid output possible only with 1 class')
+            class_pred = probas[:, 0]
+        else:
+            class_pred = probas[:, c]
+
+    # print("shape", class_pred.shape, fg.shape)
+    target = fg
+    prob = class_pred
+
+    # pt = target * prob + (1 - target) * (1 - prob)
+
+    # alpha_t = alpha * target + (1 - alpha) * (1 - target)
+    # loss = -alpha_t * (1 - pt) ** gamma * torch.log(pt + 1e-14)
+
+    # if weights is not None:
+    #     assert weights.shape == loss.shape
+    #     loss *= weights
+    # if grad_scale is None:
+    #     grad_scale = 1.0 / loss.shape[0]
+
+    # loss = loss.sum() * grad_scale
+
+    alpha_t = (1 - alpha) * (target == 0).float() + alpha * (target >= 1).float()
+
+    # prob_t = prob[range(len(target)), target]
+    # alpha_t = alpha_t[range(len(target)), target]
+    loss = -alpha_t * (1 - prob) ** gamma * torch.log(prob + 1e-14)
+
+    if weights is not None:
+        assert weights.shape == loss.shape
+        loss *= weights
+
+    if grad_scale is None:
+        grad_scale = 1.0 / loss.shape[0]
+
+    loss = loss.sum() * grad_scale
+
+    # print("loss : ",loss)
+
+    return loss
+
 
 
 def flatten_probas(probas, labels, ignore=None):
