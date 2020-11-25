@@ -1,0 +1,28 @@
+1000 -
+
+                Polar BEV - Circular SalsaNext
+
+                With data encoding :  0.15556339049339293 seconds 
+                Only network :  0.09063634181022644 seconds
+
+                time_taken :  0.11505748271942139 
+                Only network :  0.08801603722572326
+
+                Polar BEV - BEV Unet
+
+                time_taken :  0.14105052495002746 
+                Only network :  0.13585591435432434
+
+
+2000 -
+
+Polar BEV - Circular SalsaNext
+
+With data encoding :  0.13431545329093933 
+Only network :  0.08971564400196075
+
+Polar BEV - BEV Unet
+
+time_taken :  0.1431898981332779 
+ Only network :  0.13808629822731017
+
