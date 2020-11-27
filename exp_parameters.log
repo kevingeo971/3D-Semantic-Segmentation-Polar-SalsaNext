@@ -1,0 +1,22 @@
+2020-11-27 00:08:15,829 train_exp_parameters.py
+2020-11-27 00:08:15,829 Namespace(check_iter=4000, data_dir='../dataset', grid_size=[480, 360, 32], model='polar', model_save_path='./SemKITTI_PolarSeg_Exp_Runtime.pt', train_batch_size=2, val_batch_size=1)
+2020-11-27 00:08:15,829  
+
+Model : polar
+
+
+2020-11-27 00:08:32,650 train_exp_parameters.py
+2020-11-27 00:08:32,650 Namespace(check_iter=4000, data_dir='../dataset', grid_size=[480, 360, 32], model='polar', model_save_path='./SemKITTI_PolarSeg_Exp_Runtime.pt', train_batch_size=2, val_batch_size=1)
+2020-11-27 00:08:32,650  
+
+Model : polar
+
+
+2020-11-27 00:10:20,448 train_exp_parameters.py
+2020-11-27 00:10:20,448 Namespace(check_iter=4000, data_dir='../dataset', grid_size=[480, 360, 32], model='polar', model_save_path='./SemKITTI_PolarSeg_Exp_Runtime.pt', train_batch_size=2, val_batch_size=1)
+2020-11-27 00:10:20,448  
+
+Model : polar
+
+
+2020-11-27 00:10:20,448 Cicular SalsaNext

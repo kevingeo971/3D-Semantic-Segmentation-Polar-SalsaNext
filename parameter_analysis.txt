@@ -1,0 +1,5 @@
+SalsaNext : 6,731,840
+Full SalsaNext : 6,922,738  (With PointNet)
+
+BEV_Unet : 13,451,552
+Full BEV_Unet : 13,642,450  (With PointNet)
