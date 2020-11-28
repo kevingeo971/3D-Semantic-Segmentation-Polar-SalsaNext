@@ -16,6 +16,7 @@ from network.lovasz_losses import lovasz_softmax
 from SalsaNext import SalsaNext
 from SalsaNext_Circular import SalsaNext_Circular
 import logging  
+import torch.autograd.profiler as profiler
 # torch.backends.cudnn.benchmark = True
 # torch.backends.cudnn.deterministic = True
 # torch.backends.cudnn.enabled = False
@@ -138,29 +139,51 @@ def main(args):
     on_l = []
     tt_t = []
     print("val_dataset_loader : ", len(val_dataset_loader ))
-    with torch.no_grad():
-        for i_iter_val,(_,val_vox_label,val_grid,val_pt_labs,val_pt_fea) in tqdm(enumerate(val_dataset_loader)):
-            if i_iter_val >= 2000:
-                break
+    
+    '''
+    Just time
+    '''
+    # with torch.no_grad():
+    #     loop_start = time.time()
+    #     for i_iter_val,(_,val_vox_label,val_grid,val_pt_labs,val_pt_fea) in tqdm(enumerate(val_dataset_loader)):
+    #         if i_iter_val >= 2000:
+    #             break
             
-            start_time  = time.time() 
+    #         start_time  = time.time() 
+    #         val_pt_fea_ten = [torch.from_numpy(i).type(torch.FloatTensor).to(pytorch_device) for i in val_pt_fea]
+    #         val_grid_ten = [torch.from_numpy(i[:,:2]).to(pytorch_device) for i in val_grid]
+    #         #val_label_tensor=val_vox_label.type(torch.LongTensor).to(pytorch_device)
+    #         start_time_network = time.time()
+    #         predict_labels = my_model(val_pt_fea_ten, val_grid_ten)
+
+    #         curr_time = time.time()
+    #         time_taken = curr_time - start_time
+    #         only_network = curr_time - start_time_network
+    #         #print("time_taken : ", time_taken, "\n Only network : ", only_network)
+    #         on_l.append( only_network )
+    #         tt_t.append( time_taken )
+
+    # print("time_taken : ", sum(tt_t) / len(tt_t), "\n Only network : ", sum(on_l) / len(on_l))
+    # print("Loop time :", (time.time() - loop_start ) / len(tt_t) )
+    # print(tt_t, on_l)
+                
+    with torch.no_grad():
+        loop_start = time.time()
+        for i_iter_val,(_,val_vox_label,val_grid,val_pt_labs,val_pt_fea) in tqdm(enumerate(val_dataset_loader)):
             val_pt_fea_ten = [torch.from_numpy(i).type(torch.FloatTensor).to(pytorch_device) for i in val_pt_fea]
             val_grid_ten = [torch.from_numpy(i[:,:2]).to(pytorch_device) for i in val_grid]
             #val_label_tensor=val_vox_label.type(torch.LongTensor).to(pytorch_device)
-            start_time_network = time.time()
-            predict_labels = my_model(val_pt_fea_ten, val_grid_ten)
+            # start_time_network = time.time()
+            if i_iter_val <= 100:
+                predict_labels = my_model(val_pt_fea_ten, val_grid_ten)
+                continue
+            with profiler.profile(record_shapes=True, use_cuda=True) as prof:
+                with profiler.record_function("model_inference"):
+                    predict_labels = my_model(val_pt_fea_ten, val_grid_ten)
+            break
+    print(prof.key_averages().table(sort_by="cpu_time_total", row_limit=10))        
 
-            curr_time = time.time()
-            time_taken = curr_time - start_time
-            only_network = curr_time - start_time_network
-            #print("time_taken : ", time_taken, "\n Only network : ", only_network)
-            on_l.append( only_network )
-            tt_t.append( time_taken )
 
-    print("time_taken : ", sum(tt_t) / len(tt_t), "\n Only network : ", sum(on_l) / len(on_l))
-    # print(tt_t, on_l)
-                
-                
         
 
 if __name__ == '__main__':
